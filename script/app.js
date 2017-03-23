@@ -101,6 +101,14 @@ AirPlane = function(){
 
     // cockpit
     let geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
+    geomCockpit.vertices[4].y -= 10;
+    geomCockpit.vertices[4].z += 20;
+    geomCockpit.vertices[5].y -= 10;
+    geomCockpit.vertices[5].z -= 20;
+    geomCockpit.vertices[6].y += 30;
+    geomCockpit.vertices[6].z += 20;
+    geomCockpit.vertices[7].y += 30;
+    geomCockpit.vertices[7].z -= 20;
     let matCockpit = new THREE.MeshPhongMaterial({
         color: Colors.red,
         shading: THREE.FlatShading
@@ -171,6 +179,89 @@ AirPlane = function(){
     this.propeller.add(blade);
 }
 
+Pilot = function() {
+    this.mesh = new THREE.Object3D();
+    this.mesh.name = 'pilot';
+
+    this.angleHairs = 0;
+
+    // body
+    let geomBody = new THREE.BoxGeometry(15, 15, 15);
+    let matBody = new THREE.MeshPhongMaterial({
+        color: Colors.brown,
+        shading: THREE.FlatShading,
+    });
+    let body = new THREE.Mesh(geomBody, matBody);
+    body.position.set(2, -12, 0);
+    this.mesh.add(body);
+
+    // face
+    let geomFace = new THREE.BoxGeometry(10, 10, 10);
+    let matFace = new THREE.MeshLambertMaterial({
+        color: Colors.pink,
+    });
+    let face = new THREE.Mesh(geomFace, matFace);
+    this.mesh.add(face);
+
+    // hair
+    let geomHair = new THREE.BoxGeometry(4, 4, 4);
+    let matHair = new THREE.MeshLambertMaterial({
+        color: Colors.brown,
+    });
+    let hair = new THREE.Mesh(geomHair, matHair);
+    hair.geometry.translateY(2);
+
+    let hairs = new THREE.Object3D();
+
+    this.hairTop = new THREE.Object3D();
+
+    for(let i = 0; i < 12; ++i) {
+        let h = hair.clone();
+        let col = i % 3;
+        let row = Math.floor(i / 3);
+        let startPosZ = -4;
+        let startPosX = -4;
+        h.position.set(startPosX + row * 4, 0, startPosZ + col * 4);
+        this.hairTop.add(h);
+    }
+    hairs.add(this.hairTop);
+
+    ler geomHairSide = new THREE.BoxGeometry(12, 4, 2);
+    geomHairSide.translateX(-6);
+    let hairSideL = new THREE.Mesh(geomHairSide, matHair);
+    let hairSideR = hairSideL.clone();
+    hairSideL.position.set(8, -2, -6);
+    hairSideR.position.set(8, -2, 6);
+    hairs.add(hairSideL);
+    hairs.add(hairSideR);
+
+    // hairBack
+    let geomHairBack = new THREE.BoxGeometry(2, 8, 10);
+    let hairBack = new THREE.Mesh(geomHairBack, matHair);
+    hairBack.position.set(-1, -4, 0);
+    hairs.add(hairBack);
+    hairs.position.set(-5, 5, 0);
+
+    this.mesh.add(hairs);
+
+    // glass
+    let geomGlass = new THREE.BoxGeometry(5, 5, 5);
+    let matGlass = new THREE.MeshLambertMaterial({
+        color: Colors.brown,
+    });
+    let glassR = new THREE.Mesh(geomGlass, matGlass);
+    glassR.position.set(6, 0, 3);
+    let glassL = glassR.clone();
+    glassL.position.z = -glassR.position.z;
+
+    let geomGlassA = new THREE.BoxGeometry(11, 1, 11);
+    let glassA = new THREE.Mesh(geomGlassA, matGlass);
+    this.mesh.add(glassR);
+    this.mesh.add(glassL);
+    this.mesh.add(glassA);
+
+    // ear
+}
 
 
 function init() {
