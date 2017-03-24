@@ -31,6 +31,25 @@ Sea = function() {
     let geom = new THREE.CylinderGeometry(600, 600,800, 40, 10);
     geom.rotateX(-Math.PI / 2);
 
+    geom.mergeVertices();
+
+    let l = geom.vertices.length;
+
+    this.waves = [];
+
+    for(let i = 0; i < l; ++i) {
+        let v = geom.vertices[i];
+
+        this.waves.push({
+            x: v.x,
+            y: v.y,
+            z: v.z,
+            ang: Math.random() * Math.PI * 2,
+            amp: 5 + Math.random() * 15,
+            speed: 0.016 + Math.random() * 0.032,
+        });
+    }
+
     let mat = new THREE.MeshPhongMaterial({
         color: Colors.blue,
         transparent: true,
@@ -40,6 +59,25 @@ Sea = function() {
 
     this.mesh = new THREE.Mesh(geom, mat);
     this.mesh.receiveShadow = true;
+}
+
+Sea.prototype.moveWaves = function(){
+    var verts = this.mesh.geometry.vertices;
+    let l = verts.length;
+
+    for(let i = 0; i < l; ++i) {
+        let v = verts[i];
+        let vprops = this.waves[i];
+
+        v.x = vprops.x + Math.cos(vprops.ang) * vprops.amp;
+        v.y = vprops.y + Math.sin(vprops.ang) * vprops.amp;
+
+        vprops.ang += vprops.speed;
+    }
+
+    this.mesh.geometry.verticesNeedUpdate = true;
+
+    sea.mesh.rotation.z += 0.005;
 }
 
 Cloud = function() {
@@ -177,6 +215,9 @@ AirPlane = function(){
     blade.receiveShadow = true;
 
     this.propeller.add(blade);
+
+    this.pilot = new Pilot();
+    this.mesh.add(this.pilot.mesh);
 }
 
 Pilot = function() {
@@ -209,7 +250,7 @@ Pilot = function() {
         color: Colors.brown,
     });
     let hair = new THREE.Mesh(geomHair, matHair);
-    hair.geometry.translateY(2);
+    hair.geometry.translate(0, 2, 0);
 
     let hairs = new THREE.Object3D();
 
@@ -226,8 +267,8 @@ Pilot = function() {
     }
     hairs.add(this.hairTop);
 
-    ler geomHairSide = new THREE.BoxGeometry(12, 4, 2);
-    geomHairSide.translateX(-6);
+    let geomHairSide = new THREE.BoxGeometry(12, 4, 2);
+    geomHairSide.translate(-6, 0, 0);
     let hairSideL = new THREE.Mesh(geomHairSide, matHair);
     let hairSideR = hairSideL.clone();
     hairSideL.position.set(8, -2, -6);
@@ -261,6 +302,26 @@ Pilot = function() {
     this.mesh.add(glassA);
 
     // ear
+    let geomEar = new THREE.BoxGeometry(2, 3, 2);
+    let earL = new THREE.Mesh(geomEar, matFace);
+    earL.position.set(0, 0, -6);
+    let earR = earL.clone();
+    earR.position.set(0, 0, 6);
+    this.mesh.add(earL);
+    this.mesh.add(earR);
+}
+
+Pilot.prototype.updateHairs = function() {
+    let hairs = this.hairTop.children;
+
+    let l = hairs.length;
+    for(let i = 0; i < l; i++) {
+        let h = hairs[i];
+
+        h.scale.y = 0.75 + Math.cos(this.angleHairs + i / 3) * 0.25;
+    }
+
+    this.angleHairs += 0.16;
 }
 
 
@@ -381,6 +442,8 @@ function loop() {
     sea.mesh.rotation.z += 0.005;
     sky.mesh.rotation.z += 0.01;
 
+    sea.moveWaves();
+
     updatePlane();
 
     renderer.render(scene, camera);
@@ -394,6 +457,8 @@ function updatePlane() {
 
     airplane.mesh.position.x = targetX;
     airplane.mesh.position.y = targetY;
+
+    airplane.pilot.updateHairs();
 }
 
 function normalize(v, vmin, vmax, tmin, tmax) {
