@@ -14,6 +14,7 @@ let scene,
     container;
 
 let hemisphereLight, shadowLight;
+let ambientLight;
 
 let sea;
 let sky;
@@ -392,8 +393,9 @@ function handleMouseMove(event) {
     };
 }
 
-
 function createLights() {
+    ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
+
     hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
 
     shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -410,6 +412,7 @@ function createLights() {
     shadowLight.shadow.mapSize.width = 2048;
     shadowLight.shadow.mapSize.height = 2048;
 
+    scene.add(ambientLight);
     scene.add(hemisphereLight);
     scene.add(shadowLight);
 }
@@ -456,7 +459,14 @@ function updatePlane() {
     let targetY = normalize(mousePos.y, -1, 1, 25, 175);
 
     airplane.mesh.position.x = targetX;
-    airplane.mesh.position.y = targetY;
+    airplane.mesh.position.y += (targetY - airplane.mesh.position.y) * 0.1;
+
+    airplane.mesh.rotation.z = (targetY - airplane.mesh.position.y) * 0.0128;
+    airplane.mesh.rotation.x = (airplane.mesh.position.y - targetY) * 0.0064;
+
+    airplane.propeller.rotation.x += 0.3;
+
+
 
     airplane.pilot.updateHairs();
 }
